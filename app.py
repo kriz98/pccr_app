@@ -371,6 +371,7 @@ app_ui = ui.page_fluid(
                 class_="pccr-sidebar",
             ),
             width=420,
+            open="always",   # <-- inputs visible by default
         ),
 
         ui.div(
@@ -383,11 +384,6 @@ app_ui = ui.page_fluid(
             ui.card(
                 ui.card_header("Result"),
                 ui.output_text_verbatim("result_txt"),
-            ),
-            ui.br(),
-            ui.card(
-                ui.card_header("Inputs (summary)"),
-                ui.output_data_frame("summary_tbl"),
             ),
         ),
     ),
@@ -404,11 +400,6 @@ def server(input, output, session):
         d: dict[str, Any] = {k: getattr(input, k)() for k in UI_SELECT_KEYS}
         d.update({k: getattr(input, k)() for k in NUM_FIELDS})
         return d
-
-    @output
-    @render.data_frame
-    def summary_tbl():
-        return render.DataGrid(current_summary_df(read_inputs()), height="360px", width="100%")
 
     @reactive.effect
     @reactive.event(input.predict)
@@ -449,7 +440,7 @@ def server(input, output, session):
     @render.text
     def result_txt():
         s = result_state.get()
-        return s["msg"] if s["msg"] else "Click 'Predict likelihood of pcCR' to run the model."
+        return s["msg"]
 
 
 app = App(app_ui, server)
