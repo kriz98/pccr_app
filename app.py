@@ -333,8 +333,7 @@ tight_css = f"""
 """
 
 app_ui = ui.page_sidebar(
-    ui.tags.style(tight_css),
-    ui.sidebar(
+    sidebar=ui.sidebar(
         ui.div(
             ui.h4("Inputs"),
             select_input("gender", "gender"),
@@ -352,7 +351,11 @@ app_ui = ui.page_sidebar(
             select_input("asa", "asa"),
             select_input("MR_TRG", "MR_TRG"),
             numeric_input("bmi", "bmi", NUM_DEFAULTS["bmi"]),
-            numeric_input("tumor_distance_from_arj", "tumor_distance_from_arj", NUM_DEFAULTS["tumor_distance_from_arj"]),
+            numeric_input(
+                "tumor_distance_from_arj",
+                "tumor_distance_from_arj",
+                NUM_DEFAULTS["tumor_distance_from_arj"],
+            ),
             numeric_input(
                 "tumor_cradiocaudal_length",
                 "tumor_cradiocaudal_length",
@@ -366,10 +369,12 @@ app_ui = ui.page_sidebar(
         ),
         width=420,
     ),
+    # main page body starts here
+    ui.tags.style(tight_css),
     ui.h3("pcCR prediction"),
     ui.p(
         "TabPFN model trained on a cohort of 308 patients undergoing TNT+TME, "
-        "intended to predict persistent clinical complete response (pcCR) among "
+        "intended to use persistent clinical complete response (pcCR) among "
         "patients being considered for W/W after TNT."
     ),
     ui.card(
