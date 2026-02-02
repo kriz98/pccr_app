@@ -279,67 +279,76 @@ def current_summary_df(inputs: dict[str, Any]) -> pd.DataFrame:
 # ----------------------------
 # UI
 # ----------------------------
-css = f"""
+tight_css = f"""
+/* overall width */
 .container-fluid {{
   max-width: {UI_WIDTH};
 }}
+
+/* tighten vertical spacing between inputs */
 .shiny-input-container {{
-  width: {UI_WIDTH} !important;
+  margin-bottom: 0.35rem !important;
 }}
+
+/* tighten label spacing */
 .control-label {{
   width: {DESC_WIDTH} !important;
+  margin-bottom: 0.15rem !important;
+}}
+
+/* remove extra spacing around form groups (Bootstrap) */
+.form-group {{
+  margin-bottom: 0.35rem !important;
+}}
+
+/* make sidebar scroll instead of making the whole page super tall */
+.pccr-sidebar {{
+  max-height: calc(100vh - 140px);
+  overflow-y: auto;
+  padding-right: 0.5rem;
 }}
 """
 
-
-def select_input(key: str):
-    base_choices = CHOICES[key]
-    if ALLOW_NA.get(key, True):
-        choices = [MISSING_TOKEN] + base_choices
-        selected = MISSING_TOKEN
-    else:
-        choices = base_choices
-        selected = base_choices[0]
-    return ui.input_select(
-        key,
-        label(key),
-        choices=choices,
-        selected=selected,
-        width=UI_WIDTH,
-    )
-
-
-def numeric_input(key: str, value: float):
-    return ui.input_numeric(key, label(key), value=value, width=UI_WIDTH)
-
-
-select_controls = [select_input(k) for k in UI_SELECT_KEYS]
-numeric_controls = [numeric_input(k, NUM_DEFAULTS[k]) for k in NUM_FIELDS]
-
-app_ui = ui.page_fluid(
-    ui.tags.style(css),
-    ui.h3("pcCR prediction (TabPFN + Platt recalibration)"),
-    ui.p(
-        "Base prediction uses a saved TabPFN model. "
-        "Displayed risk is WW-fit logistic (Platt) recalibration."
-    ),
-    ui.layout_column_wrap(
-        *(select_controls + numeric_controls + [
-            ui.input_action_button(
-                "predict",
-                "Predict likelihood of pcCR",
-                class_="btn-primary",
-                width=UI_WIDTH,
-            ),
-            ui.input_action_button("reset", "Reset", width=UI_WIDTH),
-            ui.hr(),
+app_ui = ui.page_sidebar(
+    ui.tags.style(tight_css),
+    ui.sidebar(
+        ui.div(
             ui.h4("Inputs"),
-            ui.output_data_frame("summary_tbl"),
-            ui.hr(),
-            ui.h4("Result"),
-            ui.output_text_verbatim("result_txt"),
-        ]),
-        width=1,
+            select_input("gender", "gender"),
+            select_input("emvi", "emvi"),
+            select_input("extramesorectal_ln", "extramesorectal_ln"),
+            select_input("preop_hiso_type", "preop_hiso_type"),
+            select_input("preop_tumor_grading", "preop_tumor_grading"),
+            select_input("clinical_t_stage", "clinical_t_stage"),
+            select_input("clinical_n_stage", "clinical_n_stage"),
+            select_input("mrf_involvement", "mrf_involvement"),
+            select_input("kras", "kras"),
+            select_input("braf_mutation", "braf_mutation"),
+            select_input("tnt_regimen", "tnt_regimen"),
+            select_input("tnt_course", "tnt_course"),
+            select_input("asa", "asa"),
+            select_input("MR_TRG", "MR_TRG"),
+            numeric_input("bmi", "bmi", NUM_DEFAULTS["bmi"]),
+            numeric_input("tumor_distance_from_arj", "tumor_distance_from_arj", NUM_DEFAULTS["tumor_distance_from_arj"]),
+            numeric_input("tumor_cradiocaudal_length", "tumor_cradiocaudal_length", NUM_DEFAULTS["tumor_cradiocaudal_length"]),
+            numeric_input("pretreatment_cea", "pretreatment_cea", NUM_DEFAULTS["pretreatment_cea"]),
+            numeric_input("number_of_cycles", "number_of_cycles", NUM_DEFAULTS["number_of_cycles"]),
+            ui.input_action_button("predict", "Predict likelihood of pcCR", class_="btn-primary", width="100%"),
+            ui.input_action_button("reset", "Reset", width="100%"),
+            class_="pccr-sidebar",
+        ),
+        width=420,  # adjust if you want narrower/wider
+    ),
+    ui.h3("pcCR prediction"),
+    ui.p("TabPFN model trained on a cohort of 308 patients undergoing TNT+TME, intended to use persistent clinical complete response (pcCR) among patients being considered for W/W after TNT."),
+    ui.card(
+        ui.card_header("Result"),
+        ui.output_text_verbatim("result_txt"),
+    ),
+    ui.br(),
+    ui.card(
+        ui.card_header("Inputs (summary)"),
+        ui.output_data_frame("summary_tbl"),
     ),
 )
 
