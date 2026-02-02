@@ -1,0 +1,12 @@
+{
+    "https://markov.mayo.edu/": {
+        "server_url": "https://markov.mayo.edu/",
+        "filename": "/shares/nfs/surgeryAI/datasource/ws/chris/watch_and_wait/pccr_app",
+        "app_url": "https://markov.mayo.edu/content/73133c54-51b4-463e-96f5-dd8d1377e423/",
+        "app_id": "2993",
+        "app_guid": "73133c54-51b4-463e-96f5-dd8d1377e423",
+        "title": "pcCR Estimator",
+        "app_mode": "python-shiny",
+        "app_store_version": 1
+    }
+}
