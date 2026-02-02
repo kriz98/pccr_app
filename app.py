@@ -23,7 +23,6 @@ PLATT_PATH = HERE / "platt_params.json"  # expects {"alpha_ens": float, "beta_en
 
 UI_WIDTH = "820px"
 DESC_WIDTH = "320px"
-
 MISSING_TOKEN = "(missing)"
 
 
@@ -137,6 +136,28 @@ ALLOW_NA = {
 
 
 # ----------------------------
+# UI helper constructors  ✅ (this is what you were missing)
+# ----------------------------
+def select_input(id_: str, key: str) -> ui.Tag:
+    return ui.input_select(
+        id_,
+        label(key),
+        choices=[MISSING_TOKEN] + CHOICES[key],
+        selected=(MISSING_TOKEN if ALLOW_NA.get(key, True) else CHOICES[key][0]),
+        width="100%",
+    )
+
+
+def numeric_input(id_: str, key: str, value: float) -> ui.Tag:
+    return ui.input_numeric(
+        id_,
+        label(key),
+        value=value,
+        width="100%",
+    )
+
+
+# ----------------------------
 # Artifacts (lazy-loaded + cached)
 # ----------------------------
 @dataclass(frozen=True)
@@ -162,6 +183,13 @@ def _load_artifacts() -> Artifacts:
     _check_exists([MODEL_PATH, MODEL_COLS_PATH, PLATT_PATH])
 
     clf = joblib.load(MODEL_PATH)
+
+    # Force CPU if model exposes a device attribute (helps on Connect)
+    if hasattr(clf, "device"):
+        try:
+            clf.device = "cpu"
+        except Exception:
+            pass
 
     with MODEL_COLS_PATH.open("r", encoding="utf-8") as f:
         model_cols = json.load(f)
@@ -234,7 +262,7 @@ def build_encoded_row(inputs: dict[str, Any]) -> pd.DataFrame:
         v = inputs["MR_TRG"]
         row["MR_TRG"] = np.nan if v == MISSING_TOKEN else _coerce_float(v, "MR_TRG")
 
-    # ASA numeric + one-hot (your model_cols contains 'asa' AND 'asa_*')
+    # ASA numeric + one-hot (if your model_cols contains 'asa' AND 'asa_*')
     if "asa" in row.index:
         v = inputs["asa"]
         row["asa"] = np.nan if v == MISSING_TOKEN else _coerce_float(v, "asa")
@@ -277,31 +305,26 @@ def current_summary_df(inputs: dict[str, Any]) -> pd.DataFrame:
 
 
 # ----------------------------
-# UI
+# UI (sidebar + tightened spacing)
 # ----------------------------
 tight_css = f"""
-/* overall width */
 .container-fluid {{
   max-width: {UI_WIDTH};
 }}
 
-/* tighten vertical spacing between inputs */
 .shiny-input-container {{
   margin-bottom: 0.35rem !important;
 }}
 
-/* tighten label spacing */
 .control-label {{
   width: {DESC_WIDTH} !important;
   margin-bottom: 0.15rem !important;
 }}
 
-/* remove extra spacing around form groups (Bootstrap) */
 .form-group {{
   margin-bottom: 0.35rem !important;
 }}
 
-/* make sidebar scroll instead of making the whole page super tall */
 .pccr-sidebar {{
   max-height: calc(100vh - 140px);
   overflow-y: auto;
@@ -330,17 +353,25 @@ app_ui = ui.page_sidebar(
             select_input("MR_TRG", "MR_TRG"),
             numeric_input("bmi", "bmi", NUM_DEFAULTS["bmi"]),
             numeric_input("tumor_distance_from_arj", "tumor_distance_from_arj", NUM_DEFAULTS["tumor_distance_from_arj"]),
-            numeric_input("tumor_cradiocaudal_length", "tumor_cradiocaudal_length", NUM_DEFAULTS["tumor_cradiocaudal_length"]),
+            numeric_input(
+                "tumor_cradiocaudal_length",
+                "tumor_cradiocaudal_length",
+                NUM_DEFAULTS["tumor_cradiocaudal_length"],
+            ),
             numeric_input("pretreatment_cea", "pretreatment_cea", NUM_DEFAULTS["pretreatment_cea"]),
             numeric_input("number_of_cycles", "number_of_cycles", NUM_DEFAULTS["number_of_cycles"]),
             ui.input_action_button("predict", "Predict likelihood of pcCR", class_="btn-primary", width="100%"),
             ui.input_action_button("reset", "Reset", width="100%"),
             class_="pccr-sidebar",
         ),
-        width=420,  # adjust if you want narrower/wider
+        width=420,
     ),
     ui.h3("pcCR prediction"),
-    ui.p("TabPFN model trained on a cohort of 308 patients undergoing TNT+TME, intended to use persistent clinical complete response (pcCR) among patients being considered for W/W after TNT."),
+    ui.p(
+        "TabPFN model trained on a cohort of 308 patients undergoing TNT+TME, "
+        "intended to predict persistent clinical complete response (pcCR) among "
+        "patients being considered for W/W after TNT."
+    ),
     ui.card(
         ui.card_header("Result"),
         ui.output_text_verbatim("result_txt"),
@@ -383,8 +414,8 @@ def server(input, output, session):
             msg = (
                 f"Model: {MODEL_PATH.name}\n"
                 f"Platt params: {PLATT_PATH.name} (alpha_ens={a.alpha:.4f}, beta_ens={a.beta:.4f})\n\n"
-                f"Raw TabPFN probability:       {p_raw:.4f}  ({100*p_raw:.1f}%)\n"
-                f"Platt-calibrated probability: {p_platt:.4f}  ({100*p_platt:.1f}%)"
+                f"Raw TabPFN probability:       {p_raw:.4f}  ({100 * p_raw:.1f}%)\n"
+                f"Platt-calibrated probability: {p_platt:.4f}  ({100 * p_platt:.1f}%)"
             )
             result_state.set({"status": "ok", "msg": msg})
         except Exception as e:
@@ -394,11 +425,10 @@ def server(input, output, session):
     @reactive.event(input.reset)
     def _do_reset():
         for k in UI_SELECT_KEYS:
-            base_choices = CHOICES[k]
             if ALLOW_NA.get(k, True):
                 session.send_input_message(k, {"value": MISSING_TOKEN})
             else:
-                session.send_input_message(k, {"value": base_choices[0]})
+                session.send_input_message(k, {"value": CHOICES[k][0]})
 
         for k in NUM_FIELDS:
             session.send_input_message(k, {"value": NUM_DEFAULTS[k]})
