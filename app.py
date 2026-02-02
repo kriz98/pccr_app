@@ -332,60 +332,64 @@ tight_css = f"""
 }}
 """
 
-app_ui = ui.page_sidebar(
-    ui.div(
-        ui.tags.style(tight_css),
-        ui.h3("pcCR prediction"),
-        ui.p(
-            "TabPFN model trained on a cohort of 308 patients undergoing TNT+TME, "
-            "intended to use persistent clinical complete response (pcCR) among "
-            "patients being considered for W/W after TNT."
+app_ui = ui.page_fluid(
+    ui.tags.style(tight_css),
+
+    ui.layout_sidebar(
+        ui.sidebar(
+            ui.div(
+                ui.h4("Inputs"),
+                select_input("gender", "gender"),
+                select_input("emvi", "emvi"),
+                select_input("extramesorectal_ln", "extramesorectal_ln"),
+                select_input("preop_hiso_type", "preop_hiso_type"),
+                select_input("preop_tumor_grading", "preop_tumor_grading"),
+                select_input("clinical_t_stage", "clinical_t_stage"),
+                select_input("clinical_n_stage", "clinical_n_stage"),
+                select_input("mrf_involvement", "mrf_involvement"),
+                select_input("kras", "kras"),
+                select_input("braf_mutation", "braf_mutation"),
+                select_input("tnt_regimen", "tnt_regimen"),
+                select_input("tnt_course", "tnt_course"),
+                select_input("asa", "asa"),
+                select_input("MR_TRG", "MR_TRG"),
+                numeric_input("bmi", "bmi", NUM_DEFAULTS["bmi"]),
+                numeric_input(
+                    "tumor_distance_from_arj",
+                    "tumor_distance_from_arj",
+                    NUM_DEFAULTS["tumor_distance_from_arj"],
+                ),
+                numeric_input(
+                    "tumor_cradiocaudal_length",
+                    "tumor_cradiocaudal_length",
+                    NUM_DEFAULTS["tumor_cradiocaudal_length"],
+                ),
+                numeric_input("pretreatment_cea", "pretreatment_cea", NUM_DEFAULTS["pretreatment_cea"]),
+                numeric_input("number_of_cycles", "number_of_cycles", NUM_DEFAULTS["number_of_cycles"]),
+                ui.input_action_button("predict", "Predict likelihood of pcCR", class_="btn-primary", width="100%"),
+                ui.input_action_button("reset", "Reset", width="100%"),
+                class_="pccr-sidebar",
+            ),
+            width=420,
         ),
-        ui.card(
-            ui.card_header("Result"),
-            ui.output_text_verbatim("result_txt"),
-        ),
-        ui.br(),
-        ui.card(
-            ui.card_header("Inputs (summary)"),
-            ui.output_data_frame("summary_tbl"),
-        ),
-    ),
-    sidebar=ui.sidebar(
+
         ui.div(
-            ui.h4("Inputs"),
-            select_input("gender", "gender"),
-            select_input("emvi", "emvi"),
-            select_input("extramesorectal_ln", "extramesorectal_ln"),
-            select_input("preop_hiso_type", "preop_hiso_type"),
-            select_input("preop_tumor_grading", "preop_tumor_grading"),
-            select_input("clinical_t_stage", "clinical_t_stage"),
-            select_input("clinical_n_stage", "clinical_n_stage"),
-            select_input("mrf_involvement", "mrf_involvement"),
-            select_input("kras", "kras"),
-            select_input("braf_mutation", "braf_mutation"),
-            select_input("tnt_regimen", "tnt_regimen"),
-            select_input("tnt_course", "tnt_course"),
-            select_input("asa", "asa"),
-            select_input("MR_TRG", "MR_TRG"),
-            numeric_input("bmi", "bmi", NUM_DEFAULTS["bmi"]),
-            numeric_input(
-                "tumor_distance_from_arj",
-                "tumor_distance_from_arj",
-                NUM_DEFAULTS["tumor_distance_from_arj"],
+            ui.h3("pcCR prediction"),
+            ui.p(
+                "TabPFN model trained on a cohort of 308 patients undergoing TNT+TME, "
+                "intended to use persistent clinical complete response (pcCR) among "
+                "patients being considered for W/W after TNT."
             ),
-            numeric_input(
-                "tumor_cradiocaudal_length",
-                "tumor_cradiocaudal_length",
-                NUM_DEFAULTS["tumor_cradiocaudal_length"],
+            ui.card(
+                ui.card_header("Result"),
+                ui.output_text_verbatim("result_txt"),
             ),
-            numeric_input("pretreatment_cea", "pretreatment_cea", NUM_DEFAULTS["pretreatment_cea"]),
-            numeric_input("number_of_cycles", "number_of_cycles", NUM_DEFAULTS["number_of_cycles"]),
-            ui.input_action_button("predict", "Predict likelihood of pcCR", class_="btn-primary", width="100%"),
-            ui.input_action_button("reset", "Reset", width="100%"),
-            class_="pccr-sidebar",
+            ui.br(),
+            ui.card(
+                ui.card_header("Inputs (summary)"),
+                ui.output_data_frame("summary_tbl"),
+            ),
         ),
-        width=420,
     ),
 )
 
