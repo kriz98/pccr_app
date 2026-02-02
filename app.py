@@ -333,6 +333,24 @@ tight_css = f"""
 """
 
 app_ui = ui.page_sidebar(
+    ui.div(
+        ui.tags.style(tight_css),
+        ui.h3("pcCR prediction"),
+        ui.p(
+            "TabPFN model trained on a cohort of 308 patients undergoing TNT+TME, "
+            "intended to use persistent clinical complete response (pcCR) among "
+            "patients being considered for W/W after TNT."
+        ),
+        ui.card(
+            ui.card_header("Result"),
+            ui.output_text_verbatim("result_txt"),
+        ),
+        ui.br(),
+        ui.card(
+            ui.card_header("Inputs (summary)"),
+            ui.output_data_frame("summary_tbl"),
+        ),
+    ),
     sidebar=ui.sidebar(
         ui.div(
             ui.h4("Inputs"),
@@ -368,23 +386,6 @@ app_ui = ui.page_sidebar(
             class_="pccr-sidebar",
         ),
         width=420,
-    ),
-    # main page body starts here
-    ui.tags.style(tight_css),
-    ui.h3("pcCR prediction"),
-    ui.p(
-        "TabPFN model trained on a cohort of 308 patients undergoing TNT+TME, "
-        "intended to use persistent clinical complete response (pcCR) among "
-        "patients being considered for W/W after TNT."
-    ),
-    ui.card(
-        ui.card_header("Result"),
-        ui.output_text_verbatim("result_txt"),
-    ),
-    ui.br(),
-    ui.card(
-        ui.card_header("Inputs (summary)"),
-        ui.output_data_frame("summary_tbl"),
     ),
 )
 
