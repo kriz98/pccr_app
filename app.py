@@ -378,10 +378,14 @@ app_ui = ui.page_fluid(
             ui.h3("pcCR prediction"),
             ui.p(
                 "Based on the paper by Varghese and Ng et al, this estimator uses the base TabPFN model trained on 308 patients "
-                "undergoing TNT+TME to predict pCR, intended for application in patients being considered for W/W after TNT. "
-                "The output probability, after appropriate recalibration, estimates the likelihood of achieving a persistent "
-                "clinical complete response (pcCR). Median follow-up of the validation cohort is 25 months (n = 83 patients followed managed with TNT+ W/W)."
-                " DISCLAIMER: This is an adjunct to the paper and this tool is NOT intended for clinical use."
+                "undergoing TNT+TME to predict pCR. These predictions are subsequently validated in 83 patients being managed with "
+                "a TNT+W/W approach (median follow-up 25 months). The output probability, after appropriate recalibration, "
+                "estimates the likelihood of achieving a persistent clinical complete response (pcCR).",
+                ui.br(),
+                ui.tags.span(
+                    "DISCLAIMER: This is an adjunct to the paper and this tool is NOT intended for clinical use.",
+                    style="color: #b00020; font-weight: 600;",
+                ),
             ),
             ui.card(
                 ui.card_header("Result"),
